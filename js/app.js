@@ -3648,8 +3648,8 @@ async function exportFrsExcel() {
     const filtered = applyFrsFilters(list, filtreMois, _frsStatutFilter, { excludeArchived: false });
     if (!filtered.length) { toast('Aucune donnée à exporter','error'); return; }
     const wb = XLSX.utils.book_new();
-    const rows = [['Date','Fournisseur','Désignation','Montant','Échéance','Montant payé','Statut','Observations']];
-    filtered.forEach(f => rows.push([f.dateFacture||'',f.fournisseur||'',f.designation||'',f.montant||0,f.echeance||'',f.montantPaye||0,f.statut||'',f.note||'']));
+    const rows = [['Date','Fournisseur','Désignation','Montant','Échéance','Montant payé','N° Chèque','Bénéficiaire','Statut','Observations']];
+    filtered.forEach(f => rows.push([f.dateFacture||'',f.fournisseur||'',f.designation||'',f.montant||0,f.echeance||'',f.montantPaye||0,f.numeroCheque||'',f.beneficiaire||'',f.statut||'',f.note||'']));
     const ws = XLSX.utils.aoa_to_sheet(rows);
     XLSX.utils.book_append_sheet(wb, ws, 'Fournisseurs');
     const label = filtreMois || 'COMPLET';
@@ -3701,11 +3701,11 @@ async function exportFrsUrgent() {
     if (!filtered.length) { toast('Aucune facture urgente à exporter','info'); return; }
 
     const wb = XLSX.utils.book_new();
-    const rows = [['Date','Fournisseur','Désignation','Montant','Échéance','Jours restants','Montant payé','Statut','Observations']];
+    const rows = [['Date','Fournisseur','Désignation','Montant','Échéance','Jours restants','Montant payé','N° Chèque','Bénéficiaire','Statut','Observations']];
     filtered.forEach(f => {
       const ts = new Date(f.echeance).getTime();
       const jours = Math.ceil((ts - now) / 86400000);
-      rows.push([f.dateFacture||'',f.fournisseur||'',f.designation||'',f.montant||0,f.echeance||'',jours,f.montantPaye||0,f.statut||'',f.note||'']);
+      rows.push([f.dateFacture||'',f.fournisseur||'',f.designation||'',f.montant||0,f.echeance||'',jours,f.montantPaye||0,f.numeroCheque||'',f.beneficiaire||'',f.statut||'',f.note||'']);
     });
     const ws = XLSX.utils.aoa_to_sheet(rows);
     XLSX.utils.book_append_sheet(wb, ws, 'Factures urgentes');
@@ -3733,7 +3733,7 @@ async function exportFrsApayerByMonth() {
     }
 
     const wb = XLSX.utils.book_new();
-    const rows = [['Date','Fournisseur','Désignation','Montant','Échéance','Jours restants','Statut','Observations']];
+    const rows = [['Date','Fournisseur','Désignation','Montant','Échéance','Jours restants','N° Chèque','Bénéficiaire','Statut','Observations']];
     const now = Date.now();
 
     filtered.forEach(f => {
@@ -3743,7 +3743,7 @@ async function exportFrsApayerByMonth() {
         const jours = Math.ceil((ts - now) / 86400000);
         joursTexte = jours < 0 ? 'Expiré' : jours === 0 ? 'Aujourd\'hui' : jours + 'j';
       }
-      rows.push([f.dateFacture||'',f.fournisseur||'',f.designation||'',f.montant||0,f.echeance||'',joursTexte,f.statut||'',f.note||'']);
+      rows.push([f.dateFacture||'',f.fournisseur||'',f.designation||'',f.montant||0,f.echeance||'',joursTexte,f.numeroCheque||'',f.beneficiaire||'',f.statut||'',f.note||'']);
     });
 
     const ws = XLSX.utils.aoa_to_sheet(rows);
