@@ -3877,6 +3877,8 @@ async function saveFactureForm() {
     await saveFacture({
       id: id || undefined,
       ...facture,
+      numeroCheque,
+      beneficiaire,
       montantPaye: existing ? (existing.montantPaye || 0) : 0
     });
 
