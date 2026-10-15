@@ -3500,6 +3500,8 @@ async function renderFournisseurs() {
         <td>${esc(f.echeance||'—')}</td>
         <td>${joursTexte}</td>
         <td><div style="font-size:13px;font-weight:500">${fmtA(f.montantPaye||0)}</div><div style="font-size:11px;color:var(--text-muted)">${esc(f.datePaye||'—')}</div></td>
+        <td style="font-size:12px">${esc(f.numeroCheque||'—')}</td>
+        <td style="font-size:12px">${esc(f.beneficiaire||'—')}</td>
         <td>
           <select class="filter-select" style="padding:3px 6px;font-size:12px" onchange="quickChangeStatutFacture('${f.id}', this.value)">
             <option value="non payé" ${(f.statut||'non payé')==='non payé'?'selected':''}>Non payé</option>
@@ -3543,6 +3545,8 @@ async function renderArchives() {
         <td class="amount">${fmtA(f.montant)}</td>
         <td>${esc(f.echeance||'—')}</td>
         <td class="amount" style="color:var(--success)">${fmtA(f.montantPaye||0)}</td>
+        <td style="font-size:12px">${esc(f.numeroCheque||'—')}</td>
+        <td style="font-size:12px">${esc(f.beneficiaire||'—')}</td>
         <td><span style="font-size:12px;color:var(--text-muted)">${f.statut||''}</span></td>
         <td><span style="font-size:12px;color:var(--text-muted)">📦 ${archivedDate}</span></td>
         <td>
@@ -3803,7 +3807,10 @@ async function openEditFacture(id) {
   document.getElementById('facture-date-paye').value   = f.datePaye    || '';
   document.getElementById('facture-obs').value         = f.note        || '';
   document.getElementById('facture-mode').value        = f.mode        || '';
+  document.getElementById('facture-numero-cheque').value = f.numeroCheque || '';
   document.getElementById('facture-ref').value         = f.ref         || '';
+  document.getElementById('facture-beneficiaire').value = f.beneficiaire || '';
+  selectBeneficiaire(f.beneficiaire || '');
   const prospEl = document.getElementById('facture-prospective');
   if (prospEl) prospEl.checked = !!(f.prospective);
   const alerteRow = document.getElementById('facture-alerte-row');
@@ -3813,6 +3820,10 @@ async function openEditFacture(id) {
   document.getElementById('modal-facture-title').textContent = 'Modifier Facture';
   refreshFrsDatalist();
   openModal('modal-facture');
+}
+
+function selectBeneficiaire(nom) {
+  document.querySelector(`input[name="beneficiaire"][value="${nom}"]`).checked = true;
 }
 
 async function saveFactureForm() {
@@ -3828,7 +3839,9 @@ async function saveFactureForm() {
     const datePaye    = document.getElementById('facture-date-paye').value;
     const note        = document.getElementById('facture-obs').value.trim();
     const mode        = document.getElementById('facture-mode').value;
+    const numeroCheque = document.getElementById('facture-numero-cheque').value.trim();
     const ref         = document.getElementById('facture-ref').value.trim();
+    const beneficiaire = document.querySelector('input[name="beneficiaire"]:checked')?.value || '';
     const prospective = document.getElementById('facture-prospective').checked;
     const alerteJours = prospective ? Math.max(1, parseInt(document.getElementById('facture-alerte-jours').value) || 7) : null;
 
@@ -3849,7 +3862,9 @@ async function saveFactureForm() {
       datePaye,
       note,
       mode,
+      numeroCheque,
       ref,
+      beneficiaire,
       prospective,
       alerteJours
     });
