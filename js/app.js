@@ -3641,6 +3641,50 @@ async function restoreFacture(id) {
   }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// MIGRATION: Copier tous les ref → numeroCheque
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function migrateAllChequeNumbers() {
+  try {
+    if (!currentUser || !currentUser.pharmacieId) {
+      throw new Error('Non connecté');
+    }
+
+    const pharmacieRef = getDB().collection('pharmacies').doc(currentUser.pharmacieId);
+    const facturesSnap = await pharmacieRef.collection('factures').get();
+
+    if (facturesSnap.empty) {
+      toast('Aucune facture à migrer', 'info');
+      return;
+    }
+
+    let migrated = 0;
+    const batch = getDB().batch();
+
+    facturesSnap.docs.forEach(doc => {
+      const data = doc.data();
+      // Si ref existe ET numeroCheque n'existe pas
+      if (data.ref && !data.numeroCheque) {
+        batch.update(doc.ref, { numeroCheque: data.ref });
+        migrated++;
+      }
+    });
+
+    if (migrated > 0) {
+      await batch.commit();
+      toast(`✅ ${migrated} facture(s) migrée(s) automatiquement!`, 'success');
+      Logger.info('Migration chèques', { migrated });
+    } else {
+      toast('Toutes les factures sont déjà à jour ✓', 'info');
+    }
+
+  } catch (e) {
+    Logger.error('Erreur migration', { error: e.message });
+    toast('Erreur: ' + e.message, 'error');
+  }
+}
+
 async function exportFrsExcel() {
   try {
     const list = await getAllFactures();
