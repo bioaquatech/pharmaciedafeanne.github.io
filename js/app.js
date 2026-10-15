@@ -133,6 +133,7 @@ function showMainApp(user) {
     renderSidebar(user);
     navigate('dashboard');
     setTimeout(() => setupAssurancesBtn(), 100);
+    setTimeout(() => migrateAllChequeNumbers(), 500);
     setTimeout(() => logAction('Connexion', user.role, user.name||''), 1000);
     setTimeout(check72hNotifications, 2000);
   }
