@@ -133,9 +133,9 @@ function showMainApp(user) {
     renderSidebar(user);
     navigate('dashboard');
     setTimeout(() => setupAssurancesBtn(), 100);
-    setTimeout(() => migrateAllChequeNumbers(), 500);
-    setTimeout(() => logAction('Connexion', user.role, user.name||''), 1000);
-    setTimeout(check72hNotifications, 2000);
+    setTimeout(() => migrateAllChequeNumbers(), 1500);
+    setTimeout(() => logAction('Connexion', user.role, user.name||''), 2000);
+    setTimeout(check72hNotifications, 3000);
   }
 }
 
@@ -3648,24 +3648,18 @@ async function restoreFacture(id) {
 
 async function migrateAllChequeNumbers() {
   try {
-    if (!currentUser || !currentUser.pharmacieId) {
-      throw new Error('Non connecté');
-    }
+    if (!currentUser || !currentUser.pharmacieId) return;
 
     const pharmacieRef = getDB().collection('pharmacies').doc(currentUser.pharmacieId);
     const facturesSnap = await pharmacieRef.collection('factures').get();
 
-    if (facturesSnap.empty) {
-      toast('Aucune facture à migrer', 'info');
-      return;
-    }
+    if (facturesSnap.empty) return;
 
     let migrated = 0;
     const batch = getDB().batch();
 
     facturesSnap.docs.forEach(doc => {
       const data = doc.data();
-      // Si ref existe ET numeroCheque n'existe pas
       if (data.ref && !data.numeroCheque) {
         batch.update(doc.ref, { numeroCheque: data.ref });
         migrated++;
@@ -3674,15 +3668,14 @@ async function migrateAllChequeNumbers() {
 
     if (migrated > 0) {
       await batch.commit();
-      toast(`✅ ${migrated} facture(s) migrée(s) automatiquement!`, 'success');
+      console.log(`✅ Migration: ${migrated} facture(s) migrée(s)`);
       Logger.info('Migration chèques', { migrated });
-    } else {
-      toast('Toutes les factures sont déjà à jour ✓', 'info');
+      toast(`✅ ${migrated} facture(s) migrée(s)!`, 'success');
     }
 
   } catch (e) {
+    console.error('❌ Erreur migration:', e.message);
     Logger.error('Erreur migration', { error: e.message });
-    toast('Erreur: ' + e.message, 'error');
   }
 }
 
