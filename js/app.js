@@ -3179,7 +3179,7 @@ async function doDeleteInamEntry(id) {
 async function renderCaisse() {
   const tableBody = document.getElementById('caisse-tbody');
   if (!tableBody) return;
-  tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px">Chargement…</td></tr>`;
+  tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:20px">Chargement…</td></tr>`;
   try {
     const ops = await getAllCaisseOps();
     const canEdit = currentUser && (currentUser.role === 'superadmin' || currentUser.role === 'titulaire');
@@ -3389,7 +3389,7 @@ function filterFrsUrgent() {
 async function renderFournisseurs() {
   const tableBody = document.getElementById('frs-tbody');
   if (!tableBody) return;
-  tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:20px">Chargement…</td></tr>`;
+  tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:20px">Chargement…</td></tr>`;
   try {
     const list = await getAllFactures();
 
@@ -3470,7 +3470,7 @@ async function renderFournisseurs() {
     }
 
     if (!filtered.length) {
-      tableBody.innerHTML = `<tr><td colspan="8"><div class="empty-state">
+      tableBody.innerHTML = `<tr><td colspan="11"><div class="empty-state">
         <div class="empty-icon">🏭</div><h3>Aucune facture</h3>
         <p>Ajoutez des factures fournisseurs.</p></div></td></tr>`;
       return;
@@ -3524,13 +3524,13 @@ async function renderFournisseurs() {
 async function renderArchives() {
   const tableBody = document.getElementById('frs-archives-tbody');
   if (!tableBody) return;
-  tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:20px">Chargement…</td></tr>`;
+  tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:20px">Chargement…</td></tr>`;
   try {
     const list = await getAllFactures();
     const archived = list.filter(f => f.archived);
 
     if (!archived.length) {
-      tableBody.innerHTML = `<tr><td colspan="9"><div class="empty-state">
+      tableBody.innerHTML = `<tr><td colspan="11"><div class="empty-state">
         <div class="empty-icon">📦</div><h3>Pas d'archives</h3>
         <p>Les factures archivées apparaîtront ici.</p></div></td></tr>`;
       return;
