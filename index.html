@@ -402,7 +402,10 @@
               <select id="frs-filter-month" onchange="renderFournisseurs()" class="filter-select">
                 <option value="">Tous les mois</option>
               </select>
-              <button class="btn btn-outline btn-sm" onclick="exportFrsExcel()">📊 Excel</button>
+              <button class="btn btn-outline btn-sm" onclick="selectAllFrs()">☑️ Tout sélectionner</button>
+              <button class="btn btn-outline btn-sm" onclick="deselectAllFrs()">☐ Tout désélectionner</button>
+              <button class="btn btn-outline btn-sm" onclick="exportFrsExcelSelected()">📊 Excel (sélection)</button>
+              <button class="btn btn-outline btn-sm" onclick="exportFrsExcel()">📊 Excel (tous)</button>
               <button class="btn btn-outline btn-sm" onclick="exportFrsPDF()">📄 PDF</button>
               <button class="btn btn-danger btn-sm" onclick="exportFrsUrgent()">⚠️ Urgentes</button>
               <button class="btn btn-success btn-sm" onclick="exportFrsApayerByMonth()">💰 À payer (mois)</button>
@@ -414,7 +417,7 @@
           <!-- Vue Actives -->
           <div id="frs-view-active" class="table-wrapper">
             <table>
-              <thead><tr><th>Date</th><th>Fournisseur</th><th>Désignation</th><th>Montant</th><th>Échéance</th><th>Jours</th><th>Mode paiement</th><th>Montant payé</th><th>Date paiement</th><th>N° Chèque</th><th>Bénéficiaire</th><th>Statut</th><th>Observations</th><th>Alerte jours</th><th>Prospective</th><th>Actions</th></tr></thead>
+              <thead><tr><th style="width:40px"><input type="checkbox" id="frs-select-all" onchange="toggleSelectAllFrs()"></th><th>Date</th><th>Fournisseur</th><th>Désignation</th><th>Montant</th><th>Échéance</th><th>Jours</th><th>Mode paiement</th><th>Montant payé</th><th>Date paiement</th><th>N° Chèque</th><th>Bénéficiaire</th><th>Statut</th><th>Observations</th><th>Alerte jours</th><th>Prospective</th><th>Actions</th></tr></thead>
               <tbody id="frs-tbody"></tbody>
             </table>
           </div>

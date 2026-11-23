@@ -3179,7 +3179,7 @@ async function doDeleteInamEntry(id) {
 async function renderCaisse() {
   const tableBody = document.getElementById('caisse-tbody');
   if (!tableBody) return;
-  tableBody.innerHTML = `<tr><td colspan="16" style="text-align:center;padding:20px">Chargement…</td></tr>`;
+  tableBody.innerHTML = `<tr><td colspan="17" style="text-align:center;padding:20px">Chargement…</td></tr>`;
   try {
     const ops = await getAllCaisseOps();
     const canEdit = currentUser && (currentUser.role === 'superadmin' || currentUser.role === 'titulaire');
@@ -3386,10 +3386,61 @@ function filterFrsUrgent() {
   renderFournisseurs();
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// SÉLECTION: Checkboxes pour export sélectif
+// ═══════════════════════════════════════════════════════════════════════════
+
+function toggleSelectAllFrs() {
+  const checkboxes = document.querySelectorAll('.frs-select-checkbox');
+  const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+  checkboxes.forEach(cb => cb.checked = !allChecked);
+}
+
+function selectAllFrs() {
+  document.querySelectorAll('.frs-select-checkbox').forEach(cb => cb.checked = true);
+  const selectAllCheckbox = document.getElementById('frs-select-all');
+  if (selectAllCheckbox) selectAllCheckbox.checked = true;
+}
+
+function deselectAllFrs() {
+  document.querySelectorAll('.frs-select-checkbox').forEach(cb => cb.checked = false);
+  const selectAllCheckbox = document.getElementById('frs-select-all');
+  if (selectAllCheckbox) selectAllCheckbox.checked = false;
+}
+
+async function exportFrsExcelSelected() {
+  try {
+    const selectedCheckboxes = document.querySelectorAll('.frs-select-checkbox:checked');
+    if (!selectedCheckboxes.length) {
+      toast('Sélectionnez au moins une facture', 'warning');
+      return;
+    }
+
+    const selectedIds = Array.from(selectedCheckboxes).map(cb => cb.dataset.id);
+    const list = await getAllFactures();
+    const filtered = list.filter(f => selectedIds.includes(f.id));
+
+    const headers = ['Date','Fournisseur','Désignation','Montant','Échéance','Mode paiement','Montant payé','Date paiement','N° Chèque','Bénéficiaire','Statut','Observations','Alerte jours','Prospective'];
+    const rows = [headers];
+    filtered.forEach(f => rows.push([f.dateFacture||'',f.fournisseur||'',f.designation||'',f.montant||0,f.echeance||'',f.modePaiement||'',f.montantPaye||0,f.datePaye||'',f.numeroCheque||'',f.beneficiaire||'Non défini',f.statut||'',f.note||'',f.alerteJours||'',f.prospective||'']));
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, ws, 'Fournisseurs');
+    XLSX.writeFile(wb, `FOURNISSEURS_SELECTION_${new Date().toISOString().slice(0,10)}.xlsx`);
+    toast(`Export ${filtered.length} facture(s) sélectionnée(s) ✓`, 'success');
+    Logger.info('Export factures sélectionnées', { count: filtered.length });
+
+  } catch (e) {
+    Logger.error('Erreur export sélection', { error: e.message });
+    toast('Erreur: ' + e.message, 'error');
+  }
+}
+
 async function renderFournisseurs() {
   const tableBody = document.getElementById('frs-tbody');
   if (!tableBody) return;
-  tableBody.innerHTML = `<tr><td colspan="16" style="text-align:center;padding:20px">Chargement…</td></tr>`;
+  tableBody.innerHTML = `<tr><td colspan="17" style="text-align:center;padding:20px">Chargement…</td></tr>`;
   try {
     const list = await getAllFactures();
 
@@ -3470,7 +3521,7 @@ async function renderFournisseurs() {
     }
 
     if (!filtered.length) {
-      tableBody.innerHTML = `<tr><td colspan="16"><div class="empty-state">
+      tableBody.innerHTML = `<tr><td colspan="17"><div class="empty-state">
         <div class="empty-icon">🏭</div><h3>Aucune facture</h3>
         <p>Ajoutez des factures fournisseurs.</p></div></td></tr>`;
       return;
@@ -3493,7 +3544,8 @@ async function renderFournisseurs() {
         else joursTexte = `${jours}j`;
       }
 
-      return `<tr>
+      return `<tr id="frs-row-${f.id}">
+        <td style="text-align:center"><input type="checkbox" class="frs-select-checkbox" data-id="${f.id}"></td>
         <td>${esc(f.dateFacture||'—')}</td>
         <td><strong>${esc(f.fournisseur||'—')}</strong></td>
         <td>${esc(f.designation||'—')}</td>
@@ -3529,13 +3581,13 @@ async function renderFournisseurs() {
 async function renderArchives() {
   const tableBody = document.getElementById('frs-archives-tbody');
   if (!tableBody) return;
-  tableBody.innerHTML = `<tr><td colspan="16" style="text-align:center;padding:20px">Chargement…</td></tr>`;
+  tableBody.innerHTML = `<tr><td colspan="17" style="text-align:center;padding:20px">Chargement…</td></tr>`;
   try {
     const list = await getAllFactures();
     const archived = list.filter(f => f.archived);
 
     if (!archived.length) {
-      tableBody.innerHTML = `<tr><td colspan="16"><div class="empty-state">
+      tableBody.innerHTML = `<tr><td colspan="17"><div class="empty-state">
         <div class="empty-icon">📦</div><h3>Pas d'archives</h3>
         <p>Les factures archivées apparaîtront ici.</p></div></td></tr>`;
       return;
