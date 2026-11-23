@@ -3805,11 +3805,11 @@ async function exportFrsUrgent() {
     if (!filtered.length) { toast('Aucune facture urgente à exporter','info'); return; }
 
     const wb = XLSX.utils.book_new();
-    const rows = [['Date','Fournisseur','Désignation','Montant','Échéance','Jours restants','Montant payé','N° Chèque','Bénéficiaire','Statut','Observations']];
+    const rows = [['Date','Fournisseur','Désignation','Montant','Échéance','Jours restants','Mode paiement','Montant payé','Date paiement','N° Chèque','Bénéficiaire','Statut','Observations','Alerte jours','Prospective']];
     filtered.forEach(f => {
       const ts = new Date(f.echeance).getTime();
       const jours = Math.ceil((ts - now) / 86400000);
-      rows.push([f.dateFacture||'',f.fournisseur||'',f.designation||'',f.montant||0,f.echeance||'',jours,f.montantPaye||0,f.numeroCheque||'',f.beneficiaire||'Non défini',f.statut||'',f.note||'']);
+      rows.push([f.dateFacture||'',f.fournisseur||'',f.designation||'',f.montant||0,f.echeance||'',jours,f.modePaiement||'',f.montantPaye||0,f.datePaye||'',f.numeroCheque||'',f.beneficiaire||'Non défini',f.statut||'',f.note||'',f.alerteJours||'',f.prospective||'']);
     });
     const ws = XLSX.utils.aoa_to_sheet(rows);
     XLSX.utils.book_append_sheet(wb, ws, 'Factures urgentes');
@@ -3837,7 +3837,7 @@ async function exportFrsApayerByMonth() {
     }
 
     const wb = XLSX.utils.book_new();
-    const rows = [['Date','Fournisseur','Désignation','Montant','Échéance','Jours restants','N° Chèque','Bénéficiaire','Statut','Observations']];
+    const rows = [['Date','Fournisseur','Désignation','Montant','Échéance','Jours restants','Mode paiement','Montant payé','Date paiement','N° Chèque','Bénéficiaire','Statut','Observations','Alerte jours','Prospective']];
     const now = Date.now();
 
     filtered.forEach(f => {
@@ -3847,7 +3847,7 @@ async function exportFrsApayerByMonth() {
         const jours = Math.ceil((ts - now) / 86400000);
         joursTexte = jours < 0 ? 'Expiré' : jours === 0 ? 'Aujourd\'hui' : jours + 'j';
       }
-      rows.push([f.dateFacture||'',f.fournisseur||'',f.designation||'',f.montant||0,f.echeance||'',joursTexte,f.numeroCheque||'',f.beneficiaire||'Non défini',f.statut||'',f.note||'']);
+      rows.push([f.dateFacture||'',f.fournisseur||'',f.designation||'',f.montant||0,f.echeance||'',joursTexte,f.modePaiement||'',f.montantPaye||0,f.datePaye||'',f.numeroCheque||'',f.beneficiaire||'Non défini',f.statut||'',f.note||'',f.alerteJours||'',f.prospective||'']);
     });
 
     const ws = XLSX.utils.aoa_to_sheet(rows);
