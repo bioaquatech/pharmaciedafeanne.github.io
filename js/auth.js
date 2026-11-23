@@ -88,15 +88,24 @@ async function logout() {
     Logger.info('Déconnexion utilisateur', { uid: currentUser?.uid || 'unknown' });
     logAction('Déconnexion', '', currentUser?.name || '');
 
+    // Efface la session complètement
+    localStorage.clear();
+    sessionStorage.clear();
+
     await getAuth().signOut();
     currentUser = null;
 
     Logger.info('Déconnexion réussie');
 
+    // Redirige vers la page de login
+    window.location.href = '/';
+
   } catch (e) {
     Logger.error('Erreur déconnexion', { error: e.message });
-    currentUser = null; // Forcer la déconnexion même en cas d'erreur
-    throw e;
+    currentUser = null;
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.href = '/';
   }
 }
 
