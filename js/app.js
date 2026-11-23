@@ -3643,6 +3643,62 @@ async function restoreFacture(id) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// EXPORT: Petite Caisse → Excel
+// ═══════════════════════════════════════════════════════════════════════════
+
+async function exportCaisseExcel() {
+  try {
+    const ops = await getAllCaisseOps();
+    if (!ops.length) {
+      toast('Aucune opération à exporter', 'info');
+      return;
+    }
+
+    // Préparer les données
+    let solde = 0;
+    ops.slice().reverse().forEach(op => {
+      solde += op.type === 'recharge' ? (op.montant||0) : -(op.montant||0);
+    });
+    const soldesMap = {};
+    ops.slice().reverse().forEach(op => {
+      solde += op.type === 'recharge' ? (op.montant||0) : -(op.montant||0);
+      soldesMap[op.id] = solde;
+    });
+
+    const headers = ['Date', 'Type', 'Désignation / Source', 'Réf. transaction', 'Montant', 'Solde après', 'Observations'];
+    const rows = [headers];
+
+    ops.forEach(op => {
+      const isRecharge = op.type === 'recharge';
+      const type = isRecharge ? 'Recharge' : 'Dépense';
+      const designation = op.libelle || op.designation || (isRecharge ? 'Recharge caisse' : '—');
+      const ref = isRecharge && op.typeRecharge === 'mobilemoney' ? (op.refTransaction||'—') : (isRecharge ? 'Espèce' : '—');
+      const montant = (isRecharge ? '+' : '-') + (op.montant||0);
+      const soldeApres = soldesMap[op.id]||0;
+      const obs = op.note||'';
+
+      rows.push([op.date||'', type, designation, ref, montant, soldeApres, obs]);
+    });
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    // Formatage
+    ws['!cols'] = [{wch:12}, {wch:12}, {wch:30}, {wch:20}, {wch:12}, {wch:12}, {wch:20}];
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Petite Caisse');
+    XLSX.writeFile(wb, `PETITE_CAISSE_${new Date().toISOString().slice(0,10)}.xlsx`);
+
+    toast('Excel généré ✓', 'success');
+    Logger.info('Export caisse', { count: ops.length });
+
+  } catch (e) {
+    Logger.error('Erreur export caisse', { error: e.message });
+    toast('Erreur: ' + e.message, 'error');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // MIGRATION: Copier tous les ref → numeroCheque
 // ═══════════════════════════════════════════════════════════════════════════
 
