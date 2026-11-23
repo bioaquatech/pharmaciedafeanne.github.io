@@ -4117,8 +4117,8 @@ async function exportDonneesExcel() {
       rows = [['Date','Type','Désignation','Montant','Référence transaction','Observations']];
       data.forEach(r => rows.push([r.date||'',r.type||'',r.designation||r.source||'',r.montant||0,r.refTransaction||'',r.obs||'']));
     } else {
-      rows = [['Date','Fournisseur','Désignation','Montant','Échéance','Montant payé','Statut']];
-      data.forEach(r => rows.push([r.dateFacture||'',r.fournisseur||'',r.designation||'',r.montant||0,r.echeance||'',r.montantPaye||0,r.statut||'']));
+      rows = [['Date','Fournisseur','Désignation','Montant','Échéance','Mode paiement','Montant payé','Date paiement','N° Chèque','Bénéficiaire','Statut','Observations','Alerte jours','Prospective']];
+      data.forEach(r => rows.push([r.dateFacture||'',r.fournisseur||'',r.designation||'',r.montant||0,r.echeance||'',r.modePaiement||'',r.montantPaye||0,r.datePaye||'',r.numeroCheque||'',r.beneficiaire||'Non défini',r.statut||'',r.note||'',r.alerteJours||'',r.prospective||'']));
     }
     const ws = XLSX.utils.aoa_to_sheet(rows);
     XLSX.utils.book_append_sheet(wb, ws, module.toUpperCase());
