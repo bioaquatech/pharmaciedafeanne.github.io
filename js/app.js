@@ -3179,7 +3179,7 @@ async function doDeleteInamEntry(id) {
 async function renderCaisse() {
   const tableBody = document.getElementById('caisse-tbody');
   if (!tableBody) return;
-  tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:20px">Chargement…</td></tr>`;
+  tableBody.innerHTML = `<tr><td colspan="16" style="text-align:center;padding:20px">Chargement…</td></tr>`;
   try {
     const ops = await getAllCaisseOps();
     const canEdit = currentUser && (currentUser.role === 'superadmin' || currentUser.role === 'titulaire');
@@ -3389,7 +3389,7 @@ function filterFrsUrgent() {
 async function renderFournisseurs() {
   const tableBody = document.getElementById('frs-tbody');
   if (!tableBody) return;
-  tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:20px">Chargement…</td></tr>`;
+  tableBody.innerHTML = `<tr><td colspan="16" style="text-align:center;padding:20px">Chargement…</td></tr>`;
   try {
     const list = await getAllFactures();
 
@@ -3470,7 +3470,7 @@ async function renderFournisseurs() {
     }
 
     if (!filtered.length) {
-      tableBody.innerHTML = `<tr><td colspan="11"><div class="empty-state">
+      tableBody.innerHTML = `<tr><td colspan="16"><div class="empty-state">
         <div class="empty-icon">🏭</div><h3>Aucune facture</h3>
         <p>Ajoutez des factures fournisseurs.</p></div></td></tr>`;
       return;
@@ -3500,7 +3500,9 @@ async function renderFournisseurs() {
         <td class="amount">${fmtA(f.montant)}</td>
         <td>${esc(f.echeance||'—')}</td>
         <td>${joursTexte}</td>
-        <td><div style="font-size:13px;font-weight:500">${fmtA(f.montantPaye||0)}</div><div style="font-size:11px;color:var(--text-muted)">${esc(f.datePaye||'—')}</div></td>
+        <td style="font-size:12px">${esc(f.modePaiement||'—')}</td>
+        <td class="amount" style="font-size:12px">${fmtA(f.montantPaye||0)}</td>
+        <td style="font-size:12px">${esc(f.datePaye||'—')}</td>
         <td style="font-size:12px">${esc(f.numeroCheque||'—')}</td>
         <td style="font-size:12px">${esc(f.beneficiaire||'—')}</td>
         <td>
@@ -3510,6 +3512,9 @@ async function renderFournisseurs() {
             <option value="payé"     ${f.statut==='payé'?'selected':''}>Payé</option>
           </select>
         </td>
+        <td style="font-size:12px">${esc(f.note||'')}</td>
+        <td style="font-size:12px">${f.alerteJours||'—'}</td>
+        <td style="font-size:12px">${esc(f.prospective||'—')}</td>
         <td>
           <button class="btn btn-outline btn-sm" onclick="openEditFacture('${f.id}')">✏️</button>
           <button class="btn btn-outline btn-sm" onclick="openPayFacture('${f.id}')">💳</button>
@@ -3524,13 +3529,13 @@ async function renderFournisseurs() {
 async function renderArchives() {
   const tableBody = document.getElementById('frs-archives-tbody');
   if (!tableBody) return;
-  tableBody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:20px">Chargement…</td></tr>`;
+  tableBody.innerHTML = `<tr><td colspan="16" style="text-align:center;padding:20px">Chargement…</td></tr>`;
   try {
     const list = await getAllFactures();
     const archived = list.filter(f => f.archived);
 
     if (!archived.length) {
-      tableBody.innerHTML = `<tr><td colspan="11"><div class="empty-state">
+      tableBody.innerHTML = `<tr><td colspan="16"><div class="empty-state">
         <div class="empty-icon">📦</div><h3>Pas d'archives</h3>
         <p>Les factures archivées apparaîtront ici.</p></div></td></tr>`;
       return;
@@ -3545,10 +3550,15 @@ async function renderArchives() {
         <td>${esc(f.designation||'—')}</td>
         <td class="amount">${fmtA(f.montant)}</td>
         <td>${esc(f.echeance||'—')}</td>
-        <td class="amount" style="color:var(--success)">${fmtA(f.montantPaye||0)}</td>
+        <td style="font-size:12px">${esc(f.modePaiement||'—')}</td>
+        <td class="amount" style="color:var(--success);font-size:12px">${fmtA(f.montantPaye||0)}</td>
+        <td style="font-size:12px">${esc(f.datePaye||'—')}</td>
         <td style="font-size:12px">${esc(f.numeroCheque||'—')}</td>
         <td style="font-size:12px">${esc(f.beneficiaire||'—')}</td>
         <td><span style="font-size:12px;color:var(--text-muted)">${f.statut||''}</span></td>
+        <td style="font-size:12px">${esc(f.note||'')}</td>
+        <td style="font-size:12px">${f.alerteJours||'—'}</td>
+        <td style="font-size:12px">${esc(f.prospective||'—')}</td>
         <td><span style="font-size:12px;color:var(--text-muted)">📦 ${archivedDate}</span></td>
         <td>
           <button class="btn btn-success btn-sm" onclick="restoreFacture('${f.id}')">↩️ Restaurer</button>
@@ -3742,8 +3752,8 @@ async function exportFrsExcel() {
     const filtered = applyFrsFilters(list, filtreMois, _frsStatutFilter, { excludeArchived: false });
     if (!filtered.length) { toast('Aucune donnée à exporter','error'); return; }
     const wb = XLSX.utils.book_new();
-    const rows = [['Date','Fournisseur','Désignation','Montant','Échéance','Montant payé','N° Chèque','Bénéficiaire','Statut','Observations']];
-    filtered.forEach(f => rows.push([f.dateFacture||'',f.fournisseur||'',f.designation||'',f.montant||0,f.echeance||'',f.montantPaye||0,f.numeroCheque||'',f.beneficiaire||'Non défini',f.statut||'',f.note||'']));
+    const rows = [['Date','Fournisseur','Désignation','Montant','Échéance','Mode paiement','Montant payé','Date paiement','N° Chèque','Bénéficiaire','Statut','Observations','Alerte jours','Prospective']];
+    filtered.forEach(f => rows.push([f.dateFacture||'',f.fournisseur||'',f.designation||'',f.montant||0,f.echeance||'',f.modePaiement||'',f.montantPaye||0,f.datePaye||'',f.numeroCheque||'',f.beneficiaire||'Non défini',f.statut||'',f.note||'',f.alerteJours||'',f.prospective||'']));
     const ws = XLSX.utils.aoa_to_sheet(rows);
     XLSX.utils.book_append_sheet(wb, ws, 'Fournisseurs');
     const label = filtreMois || 'COMPLET';
