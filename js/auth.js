@@ -130,6 +130,12 @@ function onAuthReady(callback) {
 
 // ── Gestion des comptes (Super Admin) ────────────────────────────────
 
+function generatePharmacieCode(name) {
+  const initials = name.split(' ').map(w => w[0].toUpperCase()).join('');
+  const suffix = Math.random().toString(36).substr(2, 4).toUpperCase();
+  return (initials || 'PH') + suffix;
+}
+
 async function createAccount(name, email, password, role, pharmacieId) {
   try {
     // Valider les champs requis
@@ -137,7 +143,10 @@ async function createAccount(name, email, password, role, pharmacieId) {
       throw new Error('Nom, email et mot de passe requis');
     }
 
-    Logger.info('Création compte', { name, email, role, pharmacieId });
+    // Auto-générer le code pharmacie s'il n'existe pas
+    const finalPharmacieId = pharmacieId || generatePharmacieCode(name);
+
+    Logger.info('Création compte', { name, email, role, pharmacieId: finalPharmacieId });
 
     const secondary = firebase.initializeApp(FIREBASE_CONFIG, 'secondary_' + Date.now());
     let uid;
@@ -151,17 +160,15 @@ async function createAccount(name, email, password, role, pharmacieId) {
     }
 
     // Créer le profil utilisateur
-    await createUserProfile(uid, { name, email, role, pharmacieId: pharmacieId || null });
+    await createUserProfile(uid, { name, email, role, pharmacieId: finalPharmacieId });
 
     // Mettre à jour l'index de connexion
-    if (pharmacieId) {
-      await updateLoginCodesIndex(pharmacieId, email);
-    }
+    await updateLoginCodesIndex(finalPharmacieId, email);
 
-    Logger.info('Compte créé', { uid, email, role });
+    Logger.info('Compte créé', { uid, email, role, pharmacieId: finalPharmacieId });
     logAction('Création compte', `${email} (${role})`, currentUser?.name || '');
 
-    return uid;
+    return { uid, pharmacieId: finalPharmacieId };
 
   } catch (e) {
     Logger.error('Erreur création compte', { name, email, role, error: e.message });
