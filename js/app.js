@@ -2290,9 +2290,10 @@ async function doSaveUser() {
       const pharmacieId = (currentUser.pharmacieId || (currentUser.pharmacieId || 'DAFEANNE').toUpperCase() || 'PHARMACIE').toUpperCase();
       // Email technique auto-généré, invisible pour l'utilisateur
       const autoEmail = `${pharmacieId.toLowerCase()}_op_${Date.now()}@pharmacie.app`;
-      const newUid = await createAccount(name, autoEmail, password, 'operateur', pharmacieId);
+      const result = await createAccount(name, autoEmail, password, 'operateur', pharmacieId);
+      const newUid = result.uid || result;
       await updateUserProfile(newUid, { permissions });
-      toast('Opérateur créé ✓','success');
+      toast(`Opérateur créé ✓ (Code: ${result.pharmacieId})`, 'success');
     }
     closeModal();
     renderUsers();
@@ -2647,14 +2648,15 @@ async function doSaveAdminUser() {
       toast('Utilisateur modifié ✓','success');
     } else {
       if (!password) { toast('Le mot de passe est obligatoire','error'); btn.disabled=false; btn.textContent='💾 Enregistrer'; return; }
-      await createAccount(name, email, password, role, pharmacieId);
+      const result = await createAccount(name, email, password, role, pharmacieId);
+      const newPharmacieId = result.pharmacieId || pharmacieId;
       // Sauvegarder les permissions si opérateur
       if (role === 'operateur') {
         const allUsers = await getAllUsers();
         const newUser = allUsers.find(u => u.email === email);
         if (newUser) await updateAccount(newUser.uid, { permissions });
       }
-      toast('Utilisateur créé ✓','success');
+      toast(`Utilisateur créé ✓ (Code: ${newPharmacieId})`, 'success');
     }
     closeAdminModal();
     renderAdminUsers();
@@ -3965,8 +3967,7 @@ async function openEditFacture(id) {
   document.getElementById('facture-mode').value        = f.mode        || '';
   document.getElementById('facture-numero-cheque').value = f.numeroCheque || '';
   document.getElementById('facture-ref').value         = f.ref         || '';
-  document.getElementById('facture-beneficiaire').value = f.beneficiaire || '';
-  selectBeneficiaire(f.beneficiaire || '');
+  selectBeneficiaire(f.beneficiaire || 'DAFEANNE');
   const prospEl = document.getElementById('facture-prospective');
   if (prospEl) prospEl.checked = !!(f.prospective);
   const alerteRow = document.getElementById('facture-alerte-row');
@@ -3979,7 +3980,8 @@ async function openEditFacture(id) {
 }
 
 function selectBeneficiaire(nom) {
-  document.querySelector(`input[name="beneficiaire"][value="${nom}"]`).checked = true;
+  const radio = document.querySelector(`input[name="beneficiaire"][value="${nom}"]`);
+  if (radio) radio.checked = true;
 }
 
 async function saveFactureForm() {
